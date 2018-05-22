@@ -1,0 +1,2 @@
+flask
+nornir>1.0.0

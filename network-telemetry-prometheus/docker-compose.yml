@@ -1,0 +1,43 @@
+version: '2.1'
+
+services:
+
+  prometheus:
+    image: prom/prometheus
+    volumes:
+        - ./prometheus:/etc/prometheus
+    ports:
+        - 9090:9090
+    networks:
+      management:
+        ipv4_address: 10.200.200.100
+
+  grafana:
+    image: grafana/grafana
+    volumes:
+        - ./grafana:/var/lib/grafana
+    ports:
+        - 3000:3000
+    networks:
+      management:
+        ipv4_address: 10.200.200.101
+
+  monit:
+    image: prometheus-demo/monit
+    build:
+      context: monit
+    ports:
+        - 5000:5000
+    networks:
+      management:
+        ipv4_address: 10.200.200.102
+
+
+networks:
+  management:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+      - subnet: 10.200.200.0/24
+        gateway: 10.200.200.1
