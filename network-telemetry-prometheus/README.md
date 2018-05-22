@@ -32,7 +32,7 @@ You can run this demo yourself, however, you will need a couple of things:
 
 ## Project structure
 
-This "tutorial" is not going to go super deep into the details, instead, it's going to focus on laying out the foundation and will be up to the reader to go deeper into the parts they are most interested in. Because of that, we are going to start by describing the project structure so you know where to look at if you want to look into the details:
+This "tutorial" is not going to go super deep into the details, instead, it's going to focus on laying out the foundation and it will be up to the reader to go deeper into the parts they are most interested in. Because of that, we are going to start by describing the project structure:
 
 * [./grafana/](grafana) - Configuration for grafana (it's in binary so not much to look at)
 * [./monit/](monit) - Python application using nornir+flask to gather and present the metrics to prometheus
@@ -48,7 +48,7 @@ All the components will run on different containers so you don't have to worry a
 
 Now wait a couple of minutes to make sure all the software gets properly initialized. You can connect to any of the devices available with `make {spine00,leaf00,leaf01}`.
 
-I'd suggest by connecting to `spine00` and check if BGP is up and running. If BGP is not up you may have to connect to `spine00` and swap the IPs in `Et1` and `Et2` because docker sometimes doesn't respect the order of the interfaces.
+I'd suggest starting by connecting to `spine00` and checking if BGP is up and running. If BGP is not up you may have to connect to `spine00` and swap the IPs in `Et1` and `Et2` because docker sometimes doesn't respect the order of the interfaces.
 
 When you are done you can stop the environment executing the command:
 
@@ -76,11 +76,11 @@ Let's start by looking at the metrics being exported by clicking [here](http://1
 	bgp_prefixes {net_device="leaf00", peer="10.200.201.200", metric="received_prefixes"} 2
 	...
 
-Those metrics are generated on the fly every time the page is loaded. Prometheus will be querying this endpoint every 15s and scraping the metrics capturing metrics from our network in near real time.
+Those metrics are generated on the fly every time the page is loaded. Prometheus will be querying this endpoint every 15s and scraping the metrics capturing them from our network in near real time.
 
-If you want to take a look at the code needed to generate that page you can check the [monit.py](monit/monit.py) script. Code is commented and shouldn't be too scary if you know python. If you do, sufficient is to say the code looks more daunting than it actually is due to the data transformations needed to accommodate prometheus metrics format. The interesting bits are in the functions `metrics` and `_get_metrics` as those show how `flask` and `nornir` integrate seamlessly to build this web application.
+If you want to take a look at the code needed to generate that page you can check the [monit.py](monit/monit.py) script. Code is commented and shouldn't be too scary if you know python. If you don't, sufficient is to say the code looks more daunting than it actually is due to the data transformations needed to accommodate prometheus. The interesting bits are in the functions `metrics` and `_get_metrics` as those show how `flask` and `nornir` integrate seamlessly to build this web application.
 
-Note: If you see an error when querying the metrics yourself every now and then don't sweat. For simplicity we are not using `gunicorn` or any other application server, we are just starting the flask appliation directly. This means only one query at a time is possible you probably crossed the streams with prometheus. In a production environment you'd just place an application server on top of the flask application and this problem would be gone.
+Note: If you see an intermitent error when querying the metrics yourself don't sweat. For simplicity, we are not using `gunicorn` or any other application server, we are just starting the flask appliation directly. This means only one query at a time is possible, so you probably crossed the streams with prometheus. In a production environment you'd just place an application server on top of the flask application and this problem would be gone.
 
 # Querying the metrics
 
@@ -88,11 +88,11 @@ Now that we have seen the endpoint, we can connect to prometheus and start playi
 
 ![prometheus](prometheus.png)
 
-Note: If you are trying to follow this "tutorial" yourself I'd suggest making sure it's been ~5-10 minutes since you started the environment to make sure the system has enough data to return meaningful stuff. If you can't see any data check the [targets](http://127.0.0.1:9090/targets) are all `UP`. If they are and the previous step looked good wait a few more minutes. If they are not `UP` there is something wrong.
+Note: If you are trying to follow this "tutorial" yourself I'd suggest making sure it's been ~5-10 minutes since you started the environment to make sure the system has enough data to return something meaningful. If you can't see any data check the [targets](http://127.0.0.1:9090/targets) are all `UP`. If they are and the previous step looked good wait a few more minutes. If they are not `UP` there is something wrong.
 
 # Dashboards
 
-As we mentioned earlier, we are going to use grafana for visualization and alerting. You can connect to it [here](http://localhost:3000) with user and password `admin` and `admin` respectively. Now, if you click in `Home` you will see under `General` there are a few dashboards already created:
+As we mentioned earlier, we are going to use grafana for visualization and alerting. You can connect to it [here](http://localhost:3000) with user and password `admin`/`admin`. Now, if you click in `Home` you will see under `General` there are a few dashboards already created:
 
 * Interface Counters
 
@@ -110,4 +110,4 @@ At this point, I'd suggest playing a bit with the network and try things like:
 2. Shutting down interface to see how fast grafana will start showing the alert as compared to other SNMP-based monitoring sytems
 3. Playing with the dashboards to see how flexible they are thanks to prometheus query language you can use in the panels.
 
-Note that dashboards can be exported/imported in YAML format, which means that one you have created a "master" dashboard you like you should be able to use it as a template for future uses.
+Note that dashboards can be exported/imported in YAML format, which means that once you have created a "master" dashboard you like you should be able to use it as a template for future uses.
